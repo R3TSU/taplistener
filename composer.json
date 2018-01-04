@@ -1,0 +1,13 @@
+{
+    "name": "ozanhazer/taplistener",
+    "description": "Tap listener for PHPUnit 6",
+    "authors": [
+        {
+            "name": "M.Ozan Hazer",
+            "email": "ozanhazer@gmail.com"
+        }
+    ],
+    "require": {
+        "symfony/yaml": "^3.4"
+    }
+}
