@@ -8,6 +8,13 @@
         }
     ],
     "require": {
+        "php": "^7.0",
+        "phpunit/phpunit": "^6.0",
         "symfony/yaml": "^3.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Erelyr\\": "src/"
+        }
     }
 }
