@@ -2,9 +2,20 @@
 
 namespace Erelyr;
 
+use Exception;
+use PHPUnit\Framework\AssertionFailedError;
+use PHPUnit\Framework\ExpectationFailedException;
+use PHPUnit\Framework\Test;
+use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\TestFailure;
 use PHPUnit\Framework\TestListener;
+use PHPUnit\Framework\TestSuite;
+use PHPUnit\Framework\Warning;
+use PHPUnit\Util\Printer;
+use PHPUnit\Util\Test as TestUtil;
+use Symfony\Component\Yaml\Dumper as YamlDumper;
 
-class TapListener extends \PHPUnit\Util\Printer implements TestListener
+class TapListener extends Printer implements TestListener
 {
 
     /**
@@ -39,11 +50,11 @@ class TapListener extends \PHPUnit\Util\Printer implements TestListener
     /**
      * An error occurred.
      *
-     * @param \PHPUnit\Framework\Test $test
-     * @param \Exception              $e
-     * @param float                  $time
+     * @param Test      $test
+     * @param Exception $e
+     * @param float     $time
      */
-    public function addError(\PHPUnit\Framework\Test $test, \Exception $e, $time)
+    public function addError(Test $test, Exception $e, $time)
     {
         $this->writeNotOk($test, 'Error');
     }
@@ -51,11 +62,11 @@ class TapListener extends \PHPUnit\Util\Printer implements TestListener
     /**
      * A warning occurred.
      *
-     * @param \PHPUnit\Framework\Test    $test
-     * @param \PHPUnit\Framework\Warning $e
-     * @param float                     $time
+     * @param Test    $test
+     * @param Warning $e
+     * @param float   $time
      */
-    public function addWarning(\PHPUnit\Framework\Test $test, \PHPUnit\Framework\Warning $e, $time)
+    public function addWarning(Test $test, Warning $e, $time)
     {
         $this->writeNotOk($test, 'Warning');
     }
@@ -63,22 +74,22 @@ class TapListener extends \PHPUnit\Util\Printer implements TestListener
     /**
      * A failure occurred.
      *
-     * @param \PHPUnit\Framework\Test                 $test
-     * @param \PHPUnit\Framework\AssertionFailedError $e
-     * @param float                                  $time
+     * @param Test                 $test
+     * @param AssertionFailedError $e
+     * @param float                $time
      */
-    public function addFailure(\PHPUnit\Framework\Test $test, \PHPUnit\Framework\AssertionFailedError $e, $time)
+    public function addFailure(Test $test, AssertionFailedError $e, $time)
     {
         $this->writeNotOk($test, 'Failure');
         $message    = explode(
             "\n",
-            \PHPUnit\Framework\TestFailure::exceptionToString($e)
+            TestFailure::exceptionToString($e)
         );
         $diagnostic = [
             'message'  => $message[0],
             'severity' => 'fail',
         ];
-        if ($e instanceof \PHPUnit\Framework\ExpectationFailedException) {
+        if ($e instanceof ExpectationFailedException) {
             $cf = $e->getComparisonFailure();
             if ($cf !== null) {
                 $diagnostic['data'] = [
@@ -87,7 +98,7 @@ class TapListener extends \PHPUnit\Util\Printer implements TestListener
                 ];
             }
         }
-        $yaml = new Symfony\Component\Yaml\Dumper;
+        $yaml = new YamlDumper;
         $this->write(
             sprintf(
                 "  ---\n%s  ...\n",
@@ -99,11 +110,11 @@ class TapListener extends \PHPUnit\Util\Printer implements TestListener
     /**
      * Incomplete test.
      *
-     * @param \PHPUnit\Framework\Test $test
-     * @param \Exception              $e
-     * @param float                  $time
+     * @param Test      $test
+     * @param Exception $e
+     * @param float     $time
      */
-    public function addIncompleteTest(\PHPUnit\Framework\Test $test, \Exception $e, $time)
+    public function addIncompleteTest(Test $test, Exception $e, $time)
     {
         $this->writeNotOk($test, '', 'TODO Incomplete Test');
     }
@@ -111,11 +122,11 @@ class TapListener extends \PHPUnit\Util\Printer implements TestListener
     /**
      * Risky test.
      *
-     * @param \PHPUnit\Framework\Test $test
-     * @param \Exception              $e
-     * @param float                  $time
+     * @param Test      $test
+     * @param Exception $e
+     * @param float     $time
      */
-    public function addRiskyTest(\PHPUnit\Framework\Test $test, \Exception $e, $time)
+    public function addRiskyTest(Test $test, Exception $e, $time)
     {
         $this->write(
             sprintf(
@@ -130,11 +141,11 @@ class TapListener extends \PHPUnit\Util\Printer implements TestListener
     /**
      * Skipped test.
      *
-     * @param \PHPUnit\Framework\Test $test
-     * @param \Exception              $e
-     * @param float                  $time
+     * @param Test      $test
+     * @param Exception $e
+     * @param float     $time
      */
-    public function addSkippedTest(\PHPUnit\Framework\Test $test, \Exception $e, $time)
+    public function addSkippedTest(Test $test, Exception $e, $time)
     {
         $this->write(
             sprintf(
@@ -149,18 +160,18 @@ class TapListener extends \PHPUnit\Util\Printer implements TestListener
     /**
      * A testsuite started.
      *
-     * @param \PHPUnit\Framework\TestSuite $suite
+     * @param TestSuite $suite
      */
-    public function startTestSuite(\PHPUnit\Framework\TestSuite $suite)
+    public function startTestSuite(TestSuite $suite)
     {
         $this->testSuiteLevel++;
     }
     /**
      * A testsuite ended.
      *
-     * @param \PHPUnit\Framework\TestSuite $suite
+     * @param TestSuite $suite
      */
-    public function endTestSuite(\PHPUnit\Framework\TestSuite $suite)
+    public function endTestSuite(TestSuite $suite)
     {
         $this->testSuiteLevel--;
         if ($this->testSuiteLevel == 0) {
@@ -170,9 +181,9 @@ class TapListener extends \PHPUnit\Util\Printer implements TestListener
     /**
      * A test started.
      *
-     * @param \PHPUnit\Framework\Test $test
+     * @param Test $test
      */
-    public function startTest(\PHPUnit\Framework\Test $test)
+    public function startTest(Test $test)
     {
         $this->testNumber++;
         $this->testSuccessful = true;
@@ -180,17 +191,17 @@ class TapListener extends \PHPUnit\Util\Printer implements TestListener
     /**
      * A test ended.
      *
-     * @param \PHPUnit\Framework\Test $test
-     * @param float                  $time
+     * @param Test  $test
+     * @param float $time
      */
-    public function endTest(\PHPUnit\Framework\Test $test, $time)
+    public function endTest(Test $test, $time)
     {
         if ($this->testSuccessful === true) {
             $this->write(
                 sprintf(
                     "ok %d - %s\n",
                     $this->testNumber,
-                    \PHPUnit\Util\Test::describe($test)
+                    TestUtil::describe($test)
                 )
             );
         }
@@ -198,18 +209,18 @@ class TapListener extends \PHPUnit\Util\Printer implements TestListener
     }
 
     /**
-     * @param \PHPUnit\Framework\Test $test
-     * @param string                 $prefix
-     * @param string                 $directive
+     * @param Test   $test
+     * @param string $prefix
+     * @param string $directive
      */
-    protected function writeNotOk(\PHPUnit\Framework\Test $test, $prefix = '', $directive = '')
+    protected function writeNotOk(Test $test, $prefix = '', $directive = '')
     {
         $this->write(
             sprintf(
                 "not ok %d - %s%s%s\n",
                 $this->testNumber,
                 $prefix != '' ? $prefix . ': ' : '',
-                \PHPUnit\Util\Test::describe($test),
+                TestUtil::describe($test),
                 $directive != '' ? ' # ' . $directive : ''
             )
         );
@@ -217,11 +228,11 @@ class TapListener extends \PHPUnit\Util\Printer implements TestListener
     }
 
     /**
-     * @param \PHPUnit\Framework\Test $test
+     * @param Test $test
      */
-    private function writeDiagnostics(\PHPUnit\Framework\Test $test)
+    private function writeDiagnostics(Test $test)
     {
-        if (!$test instanceof \PHPUnit\Framework\TestCase) {
+        if (!$test instanceof TestCase) {
             return;
         }
         if (!$test->hasOutput()) {
